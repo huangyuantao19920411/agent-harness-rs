@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sandbox-test
+  namespace: agent-sandbox
+  labels:
+    app: agent-harness-sandbox
+spec:
+  ttlSecondsAfterFinished: 120
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: agent-harness-sandbox
+    spec:
+      runtimeClassName: gvisor
+      restartPolicy: Never
+      containers:
+        - name: sandbox
+          image: alpine:3.20
+          command: ["echo"]
+          args: ["Hello from gVisor sandbox!"]
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false

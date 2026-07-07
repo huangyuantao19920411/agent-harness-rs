@@ -1,0 +1,16 @@
+sandbox:
+  enabled: true
+  runtimeClass: gvisor
+  namespace: agent-sandbox
+
+agent:
+  image: agent-harness-rs:latest
+  replicas: 1
+
+resources:
+  limits:
+    cpu: "2"
+    memory: "2Gi"
+  requests:
+    cpu: "500m"
+    memory: "512Mi"

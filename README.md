@@ -86,10 +86,10 @@ When `DEEPSEEK_API_KEY` is set, `coding-agent` automatically uses the DeepSeek a
 - [x] MCP Client (stdio transport + tool bridge)
 - [x] Process Sandbox (timeout, cwd jail, env filter)
 - [x] Wasm Sandbox (wasmtime, fuel-limited)
+- [x] K8s RuntimeClass integration (gVisor / Kata + SandboxScheduler)
 - [ ] Context compression
 - [ ] Multi-Agent orchestration
-- [ ] K8s RuntimeClass integration (gVisor / Firecracker)
-- [ ] K8s Helm chart
+- [x] K8s Helm chart (basic)
 
 ## Sandbox Strategy
 
@@ -99,7 +99,7 @@ See [docs/sandbox.md](docs/sandbox.md) for the full analysis. Summary:
 |-------|---------|----------|
 | 1 (done) | Process | Demo, trusted tools |
 | 2 (done) | Wasm (wasmtime) | AI-generated code |
-| 3 | gVisor / Firecracker via K8s | Production untrusted code |
+| 3 (done) | gVisor / Firecracker via K8s | Production untrusted code |
 
 We integrate existing isolation technologies rather than building a Firecracker clone.
 

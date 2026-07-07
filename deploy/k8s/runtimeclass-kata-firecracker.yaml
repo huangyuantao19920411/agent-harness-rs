@@ -1,0 +1,10 @@
+# Kata Containers with Firecracker VMM — hardware-level isolation via KVM.
+# Requires Kata Containers: https://github.com/kata-containers/kata-containers
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: kata-fc
+handler: kata-fc
+scheduling:
+  nodeSelector:
+    sandbox.kata.io/enabled: "true"
