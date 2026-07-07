@@ -103,6 +103,6 @@ See [docs/sandbox.md](docs/sandbox.md) for the full analysis. Summary:
 
 We integrate existing isolation technologies rather than building a Firecracker clone.
 
-## License
+## 关联项目
 
-MIT
+- [agent-handbook](https://github.com/huangyuantao19920411/agent-handbook) — Agent 生态概念图解学习手册
