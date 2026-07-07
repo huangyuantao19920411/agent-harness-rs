@@ -106,3 +106,7 @@ We integrate existing isolation technologies rather than building a Firecracker 
 ## 关联项目
 
 - [agent-handbook](https://github.com/huangyuantao19920411/agent-handbook) — Agent 生态概念图解学习手册
+
+## License
+
+MIT
