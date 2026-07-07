@@ -1,0 +1,32 @@
+[workspace]
+members = [
+    "crates/harness-core",
+    "crates/harness-tools",
+    "crates/harness-trace",
+    "crates/harness-models",
+    "crates/harness-multi",
+    "examples/coding-agent",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Yuantao Huang <yuantao.huang@tesla.com>"]
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+async-trait = "0.1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tracing = "0.1"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+harness-core = { path = "crates/harness-core" }
+harness-tools = { path = "crates/harness-tools" }
+harness-trace = { path = "crates/harness-trace" }
+harness-models = { path = "crates/harness-models" }
+harness-multi = { path = "crates/harness-multi" }
