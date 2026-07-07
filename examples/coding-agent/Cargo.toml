@@ -18,5 +18,6 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 harness-core = { workspace = true }
 harness-models = { workspace = true }
+harness-mcp = { workspace = true }
 harness-tools = { workspace = true }
 harness-trace = { workspace = true }

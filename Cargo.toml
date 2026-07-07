@@ -5,6 +5,8 @@ members = [
     "crates/harness-trace",
     "crates/harness-models",
     "crates/harness-multi",
+    "crates/harness-mcp",
+    "crates/harness-sandbox",
     "examples/coding-agent",
 ]
 resolver = "2"
@@ -30,3 +32,5 @@ harness-tools = { path = "crates/harness-tools" }
 harness-trace = { path = "crates/harness-trace" }
 harness-models = { path = "crates/harness-models" }
 harness-multi = { path = "crates/harness-multi" }
+harness-mcp = { path = "crates/harness-mcp" }
+harness-sandbox = { path = "crates/harness-sandbox" }

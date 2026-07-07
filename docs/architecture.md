@@ -32,6 +32,8 @@ User Input
 ```
 harness-core
     ├── harness-tools (ToolRegistry)
+    ├── harness-mcp (MCP Client → Tool bridge)
+    ├── harness-sandbox (ProcessSandbox)
     ├── harness-models (ModelProvider)
     └── harness-trace (Tracer)
 

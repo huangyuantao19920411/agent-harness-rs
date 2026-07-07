@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use harness_core::{AgentLoop, AgentRequest, HarnessConfig};
+use harness_mcp::{connect_and_register, McpClientConfig};
 use harness_models::ModelBackend;
 use harness_tools::{Tool, ToolRegistry, ToolSchema};
 use harness_trace::Tracer;
@@ -55,6 +56,30 @@ async fn main() {
 
     let mut registry = ToolRegistry::new();
     registry.register(Arc::new(ListDirTool));
+
+    if let Ok(mcp_cmd) = std::env::var("MCP_SERVER_COMMAND") {
+        let mcp_args: Vec<String> = std::env::var("MCP_SERVER_ARGS")
+            .unwrap_or_default()
+            .split_whitespace()
+            .map(String::from)
+            .collect();
+
+        let mut config = McpClientConfig::new(mcp_cmd);
+        for arg in mcp_args {
+            config = config.arg(arg);
+        }
+
+        match connect_and_register(config, &mut registry).await {
+            Ok(client) => {
+                eprintln!(
+                    "MCP connected: {} ({} tools)",
+                    client.server_name().unwrap_or("unknown"),
+                    registry.schemas().len()
+                );
+            }
+            Err(e) => eprintln!("MCP connection failed: {e}"),
+        }
+    }
 
     let tracer = Tracer::new();
     let loop_engine = AgentLoop::new(model, registry, tracer.clone(), HarnessConfig::default());
