@@ -10,8 +10,9 @@ async-trait.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = ["process", "time", "io-util"] }
+tokio = { workspace = true, features = ["process", "time", "io-util", "rt"] }
 tracing.workspace = true
+wasmtime = "29"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
