@@ -62,6 +62,10 @@ cargo run -p coding-agent -- "List files in current directory"
 export MCP_SERVER_COMMAND="npx"
 export MCP_SERVER_ARGS="-y @modelcontextprotocol/server-filesystem /tmp"
 cargo run -p coding-agent -- "What files are in /tmp?"
+
+# Sandbox scheduler demo (Process / Wasm / K8s)
+cargo run -p sandbox-demo
+SKIP_K8S_SANDBOX=1 cargo run -p sandbox-demo   # skip K8s if no cluster
 ```
 
 When `DEEPSEEK_API_KEY` is set, `coding-agent` automatically uses the DeepSeek adapter (`deepseek-chat` by default).
@@ -75,6 +79,8 @@ When `DEEPSEEK_API_KEY` is set, `coding-agent` automatically uses the DeepSeek a
 | `DEEPSEEK_BASE_URL` | `https://api.deepseek.com` | API base URL |
 | `MCP_SERVER_COMMAND` | - | MCP server executable |
 | `MCP_SERVER_ARGS` | - | MCP server arguments (space-separated) |
+| `SANDBOX_RUNTIME_CLASS` | `gvisor` | K8s RuntimeClass for MicroVM sandbox |
+| `SANDBOX_NAMESPACE` | `agent-sandbox` | K8s namespace for sandbox Jobs |
 
 ## Features (Roadmap)
 

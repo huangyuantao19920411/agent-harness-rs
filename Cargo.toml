@@ -8,6 +8,7 @@ members = [
     "crates/harness-mcp",
     "crates/harness-sandbox",
     "examples/coding-agent",
+    "examples/sandbox-demo",
 ]
 resolver = "2"
 

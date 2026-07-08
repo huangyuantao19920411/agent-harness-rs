@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use harness_core::{AgentLoop, AgentRequest, HarnessConfig};
 use harness_mcp::{connect_and_register, McpClientConfig};
 use harness_models::ModelBackend;
+use harness_sandbox::SandboxScheduler;
 use harness_tools::{Tool, ToolRegistry, ToolSchema};
 use harness_trace::Tracer;
 use tracing_subscriber::EnvFilter;
@@ -40,6 +41,79 @@ impl Tool for ListDirTool {
     }
 }
 
+struct SandboxExecTool {
+    scheduler: Arc<SandboxScheduler>,
+}
+
+#[async_trait]
+impl Tool for SandboxExecTool {
+    fn schema(&self) -> ToolSchema {
+        ToolSchema {
+            name: "sandbox_exec".into(),
+            description: "Execute a command in a sandbox. Routes by task_type: trusted (process), code (wasm), untrusted (K8s MicroVM).".into(),
+            parameters: serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "task_type": {
+                        "type": "string",
+                        "enum": ["trusted", "code", "untrusted", "shell"],
+                        "description": "Risk level: trusted=process, code=wasm, untrusted/shell=K8s MicroVM"
+                    },
+                    "command": { "type": "string", "description": "Command to run" },
+                    "args": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "Command arguments"
+                    }
+                },
+                "required": ["task_type", "command"]
+            }),
+        }
+    }
+
+    async fn execute(&self, args: &serde_json::Value) -> harness_tools::Result<String> {
+        let task_type = args
+            .get("task_type")
+            .and_then(|v| v.as_str())
+            .unwrap_or("trusted");
+        let command = args
+            .get("command")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| harness_tools::ToolError::InvalidArguments("command required".into()))?;
+
+        let cmd_args: Vec<String> = args
+            .get("args")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let arg_refs: Vec<&str> = cmd_args.iter().map(String::as_str).collect();
+
+        let result = self
+            .scheduler
+            .exec(task_type, command, &arg_refs)
+            .await
+            .map_err(|e| harness_tools::ToolError::Execution(e.to_string()))?;
+
+        let mut output = result.stdout;
+        if !result.stderr.is_empty() {
+            if !output.is_empty() {
+                output.push('\n');
+            }
+            output.push_str("[stderr] ");
+            output.push_str(&result.stderr);
+        }
+        if result.timed_out {
+            output.push_str("\n[timed out]");
+        }
+        Ok(output)
+    }
+}
+
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
@@ -54,8 +128,15 @@ async fn main() {
     let model = ModelBackend::from_env();
     eprintln!("Using model backend: {}", model.name());
 
+    let scheduler = Arc::new(
+        SandboxScheduler::with_defaults().expect("failed to init sandbox scheduler"),
+    );
+
     let mut registry = ToolRegistry::new();
     registry.register(Arc::new(ListDirTool));
+    registry.register(Arc::new(SandboxExecTool {
+        scheduler: scheduler.clone(),
+    }));
 
     if let Ok(mcp_cmd) = std::env::var("MCP_SERVER_COMMAND") {
         let mcp_args: Vec<String> = std::env::var("MCP_SERVER_ARGS")
@@ -72,7 +153,7 @@ async fn main() {
         match connect_and_register(config, &mut registry).await {
             Ok(client) => {
                 eprintln!(
-                    "MCP connected: {} ({} tools)",
+                    "MCP connected: {} ({} tools total)",
                     client.server_name().unwrap_or("unknown"),
                     registry.schemas().len()
                 );
@@ -88,7 +169,9 @@ async fn main() {
         .run(AgentRequest {
             input,
             system_prompt: Some(
-                "You are a coding agent harness demo. Use tools when helpful.".into(),
+                "You are a coding agent harness demo. Use list_dir or sandbox_exec tools when helpful. \
+                 sandbox_exec routes by task_type: trusted=local process, untrusted=K8s MicroVM."
+                    .into(),
             ),
         })
         .await

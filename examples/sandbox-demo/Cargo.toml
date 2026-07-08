@@ -1,0 +1,17 @@
+[package]
+name = "sandbox-demo"
+description = "Demo SandboxScheduler routing across Process / Wasm / K8s"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sandbox-demo"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tracing.workspace = true
+tracing-subscriber = "0.3"
+
+harness-sandbox = { workspace = true }
