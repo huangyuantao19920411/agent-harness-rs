@@ -15,6 +15,12 @@ uuid.workspace = true
 
 harness-tools = { workspace = true }
 harness-trace = { workspace = true }
+harness-memory = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true }
+harness-models = { workspace = true }
+harness-tools = { workspace = true }
+harness-trace = { workspace = true }
+async-trait.workspace = true
+tempfile = "3"

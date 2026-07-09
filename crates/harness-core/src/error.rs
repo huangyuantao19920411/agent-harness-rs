@@ -15,4 +15,10 @@ pub enum HarnessError {
 
     #[error("context error: {0}")]
     Context(String),
+
+    #[error("policy denied: {0}")]
+    PolicyDenied(String),
+
+    #[error("memory error: {0}")]
+    Memory(String),
 }

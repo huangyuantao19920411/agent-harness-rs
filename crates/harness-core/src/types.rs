@@ -6,6 +6,9 @@ use crate::message::Message;
 pub struct AgentRequest {
     pub input: String,
     pub system_prompt: Option<String>,
+    /// Session id for episodic memory recall / persistence.
+    #[serde(default)]
+    pub session_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

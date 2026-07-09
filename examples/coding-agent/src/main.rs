@@ -50,14 +50,14 @@ impl Tool for SandboxExecTool {
     fn schema(&self) -> ToolSchema {
         ToolSchema {
             name: "sandbox_exec".into(),
-            description: "Execute a command in a sandbox. Routes by task_type: trusted (process), code (wasm), untrusted (K8s MicroVM).".into(),
+            description: "Execute a command in a sandbox. Routes by task_type: trusted/code=process, untrusted/shell=K8s MicroVM. Shell commands are checked by exec policy.".into(),
             parameters: serde_json::json!({
                 "type": "object",
                 "properties": {
                     "task_type": {
                         "type": "string",
                         "enum": ["trusted", "code", "untrusted", "shell"],
-                        "description": "Risk level: trusted=process, code=wasm, untrusted/shell=K8s MicroVM"
+                        "description": "trusted/code=process sandbox, untrusted/shell=K8s MicroVM"
                     },
                     "command": { "type": "string", "description": "Command to run" },
                     "args": {
@@ -163,11 +163,47 @@ async fn main() {
     }
 
     let tracer = Tracer::new();
-    let loop_engine = AgentLoop::new(model, registry, tracer.clone(), HarnessConfig::default());
+    if let Ok(trace_path) = std::env::var("TRACE_PATH") {
+        tracer
+            .enable_persistence(&trace_path)
+            .await
+            .unwrap_or_else(|e| eprintln!("trace persistence: {e}"));
+        eprintln!("Trace JSONL: {trace_path}");
+    }
+
+    let harness_config = if std::env::var("GUARDIAN_DISABLED").is_ok() {
+        eprintln!("Guardian: disabled (permissive mode)");
+        HarnessConfig::permissive()
+    } else {
+        eprintln!("Guardian: enabled (LLM review for unknown shell commands)");
+        HarnessConfig::with_guardian()
+    };
+
+    if harness_config.memory.enabled {
+        eprintln!("Memory: enabled ({})", harness_config.memory.db_path.display());
+    }
+
+    if harness_config.skills.enabled {
+        eprintln!(
+            "Skills: enabled (paths: {})",
+            harness_config
+                .skills
+                .search_paths
+                .iter()
+                .map(|p| p.display().to_string())
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+    }
+
+    let session_id = std::env::var("SESSION_ID").ok();
+
+    let loop_engine = AgentLoop::new(model, registry, tracer.clone(), harness_config);
 
     let outcome = loop_engine
         .run(AgentRequest {
             input,
+            session_id,
             system_prompt: Some(
                 "You are a coding agent harness demo. Use list_dir or sandbox_exec tools when helpful. \
                  sandbox_exec routes by task_type: trusted=local process, untrusted=K8s MicroVM."
@@ -189,8 +225,6 @@ async fn main() {
     if !events.is_empty() {
         println!();
         println!("=== Trace ({} events) ===", events.len());
-        for event in events {
-            println!("{event:?}");
-        }
+        println!("{}", tracer.replay_summary().await);
     }
 }

@@ -17,4 +17,32 @@ pub enum TraceEvent {
         iteration: u32,
         content: String,
     },
+    ContextCompacted {
+        iteration: u32,
+        messages_before: usize,
+        messages_after: usize,
+        tokens_before: usize,
+        tokens_after: usize,
+        summary_preview: String,
+    },
+    ToolApprovalReview {
+        iteration: u32,
+        name: String,
+        approved: bool,
+        reviewer: String,
+        reason: String,
+    },
+    MemoryRecalled {
+        session_id: String,
+        count: usize,
+        preview: String,
+    },
+    MemoryPersisted {
+        session_id: String,
+        count: usize,
+    },
+    SkillLoaded {
+        name: String,
+        path: String,
+    },
 }

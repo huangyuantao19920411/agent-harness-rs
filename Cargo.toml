@@ -7,8 +7,11 @@ members = [
     "crates/harness-multi",
     "crates/harness-mcp",
     "crates/harness-sandbox",
+    "crates/harness-app-server",
+    "crates/harness-memory",
     "examples/coding-agent",
     "examples/sandbox-demo",
+    "examples/app-server",
 ]
 resolver = "2"
 
@@ -35,3 +38,5 @@ harness-models = { path = "crates/harness-models" }
 harness-multi = { path = "crates/harness-multi" }
 harness-mcp = { path = "crates/harness-mcp" }
 harness-sandbox = { path = "crates/harness-sandbox" }
+harness-app-server = { path = "crates/harness-app-server" }
+harness-memory = { path = "crates/harness-memory" }

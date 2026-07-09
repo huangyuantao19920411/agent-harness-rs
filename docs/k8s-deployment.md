@@ -7,7 +7,8 @@ Phase 3：通过 K8s RuntimeClass 集成 gVisor / Firecracker（Kata Containers�
 
 ```mermaid
 graph TB
-    HARNESS[Agent Harness<br/>SandboxScheduler] -->|untrusted task| K8S_API[kubectl apply Job]
+    HARNESS[Agent Harness<br/>SandboxScheduler] -->|untrusted task| K8S_API[kube-rs Job API]
+    K8S_API -->|fallback| KUBECTL[kubectl CLI]
     K8S_API --> JOB[Sandbox Job Pod]
     JOB --> RC[RuntimeClass]
     RC --> G[gVisor runsc]
@@ -55,10 +56,23 @@ let result = scheduler.exec("trusted", "echo", &["hello"]).await?;
 // AI 生成代码 → Wasm 沙箱
 let result = scheduler.exec_wasm(wat_bytes, "main", &[]).await?;
 
-// 不可信 shell → K8s MicroVM（需要 kubectl + RuntimeClass）
+// 不可信 shell → K8s MicroVM（默认 kube-rs API，失败时 fallback kubectl）
 std::env::set_var("SANDBOX_RUNTIME_CLASS", "gvisor");
+std::env::set_var("SANDBOX_K8S_BACKEND", "kube"); // 或 "kubectl"
 let result = scheduler.exec("untrusted", "sh", &["-c", "echo safe"]).await?;
 ```
+
+### In-cluster 部署
+
+Agent Pod 通过 ServiceAccount + RBAC 直接调用 K8s API（无需 kubectl 二进制）：
+
+```bash
+helm install agent-harness deploy/helm/agent-harness \
+  --set sandbox.runtimeClass=gvisor \
+  --set sandbox.k8sBackend=kube
+```
+
+本地开发仍可使用 `SANDBOX_K8S_BACKEND=kubectl`。
 
 ## RuntimeClass 对比
 

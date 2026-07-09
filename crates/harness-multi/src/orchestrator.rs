@@ -42,10 +42,10 @@ impl Orchestrator {
         .collect()
     }
 
-    pub fn aggregate(&self, results: Vec<TaskResult>) -> String {
+    pub fn aggregate(&self, results: &[TaskResult]) -> String {
         results
             .iter()
-            .map(|r| format!("[{}] {}", r.task_id, r.output))
+            .map(|r| format!("[{}:{}] {}", r.task_id, if r.success { "ok" } else { "fail" }, r.output))
             .collect::<Vec<_>>()
             .join("\n")
     }

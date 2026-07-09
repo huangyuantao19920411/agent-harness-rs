@@ -2,6 +2,10 @@ sandbox:
   enabled: true
   runtimeClass: gvisor
   namespace: agent-sandbox
+  k8sBackend: kube
+
+rbac:
+  create: true
 
 agent:
   image: agent-harness-rs:latest

@@ -21,6 +21,8 @@ async fn main() {
     println!("  trusted  -> {:?}", policy.level_for("trusted"));
     println!("  code     -> {:?}", policy.level_for("code"));
     println!("  untrusted -> {:?}\n", policy.level_for("untrusted"));
+    println!("K8s backend: {:?}", scheduler.k8s_backend());
+    println!("Exec mode: {:?}\n", scheduler.exec_mode());
 
     // Phase 1: Process
     println!("--- Phase 1: Process Sandbox ---");
@@ -38,33 +40,24 @@ async fn main() {
         Err(e) => eprintln!("error: {e}"),
     }
 
-    // Phase 3: K8s MicroVM (requires kubectl + RuntimeClass)
+    // Phase 3: K8s MicroVM (kube-rs API or kubectl fallback)
     println!("\n--- Phase 3: K8s MicroVM (gVisor/Kata) ---");
     if std::env::var("SKIP_K8S_SANDBOX").is_ok() {
         println!("skipped (SKIP_K8S_SANDBOX=1)");
-    } else if which_kubectl() {
+    } else {
         let runtime = std::env::var("SANDBOX_RUNTIME_CLASS").unwrap_or_else(|_| "gvisor".into());
-        println!("runtimeClass: {runtime}");
+        let backend = scheduler.k8s_backend();
+        println!("runtimeClass: {runtime}, backend: {backend:?}");
         let r = scheduler
             .exec("untrusted", "echo", &["hello from microvm"])
             .await;
         match r {
             Ok(res) => println!("stdout: {}", res.stdout.trim()),
             Err(e) => eprintln!(
-                "K8s sandbox failed (expected if RuntimeClass not installed): {e}"
+                "K8s sandbox failed (expected if no cluster / RuntimeClass): {e}"
             ),
         }
-    } else {
-        println!("kubectl not found, skipping K8s demo");
     }
 
     println!("\nDone.");
-}
-
-fn which_kubectl() -> bool {
-    std::process::Command::new("kubectl")
-        .arg("version")
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false)
 }
